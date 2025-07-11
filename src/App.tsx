@@ -39,39 +39,32 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
-      {/* Background decoration */}
-
       <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-8 py-16">
-          {/* Widgets Section */}
-          <main className="space-y-24">
+        <div className="max-w-7xl mx-auto px-6 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
+          <header className="text-center mb-16 lg:mb-20">
+            <h1 className=" text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6" style={{paddingTop:'5rem'}}>
+              Widgets Showcase - Ravan.ai
+            </h1>
+          </header>
+          <main className="space-y-16 lg:space-y-20">
             {widgets.map((widget, index) => (
               <div
                 key={index}
                 className={`transform transition-all duration-700 ${
-                  isLoaded
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-20 opacity-0"
+                  isLoaded ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
                 }`}
                 style={{ transitionDelay: `${index * 300}ms` }}
               >
-                {/* Widget Header */}
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                <div className="text-center mb-8 lg:mb-10 pt-4 pb-2">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
                     {widget.title}
                   </h2>
-                  <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
                     {widget.description}
                   </p>
                 </div>
-
-                {/* Widget Demo Container */}
                 <div className="relative group">
-                  {/* Gradient background */}
-
-                  {/* Main widget container */}
-
-                  <div className="bg-gradient-to-br from-white to-orange-50 rounded-2xl p-8 ">
+                  <div className="bg-white/90 bg-gradient-to-br from-white to-orange-50 rounded-2xl p-6 sm:p-8 lg:p-10">
                     <WidgetDemo
                       tagName={widget.tagName}
                       agentId={widget.agentId}
@@ -83,11 +76,9 @@ function App() {
               </div>
             ))}
           </main>
-
         </div>
       </div>
-
-      <div className="p-4 h-full">
+      <div className="p-6 sm:p-8">
         <WidgetDemo
           tagName="react-widget-uv"
           agentId="5f29901d-93d1-48d9-a9bd-d0c6525d26ac"
