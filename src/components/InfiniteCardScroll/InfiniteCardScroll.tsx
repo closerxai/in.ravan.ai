@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from "react";
 import { Card } from "./Card";
+import { AgentDetail } from "./AgentDetail";
 import type { CardInterface } from "../../types";
 import "./InfiniteCardScroll.css";
 import RealEstateAgentVoice from "./RealEstateAgentVoice";
@@ -38,6 +39,9 @@ export const InfiniteCardScroll: React.FC<InfiniteCardScrollProps> = memo(
     const [isLoading, setIsLoading] = useState(false);
     const [agentName, setAgentName] = useState<string | undefined | null>(
       undefined
+    );
+    const [selectedAgent, setSelectedAgent] = useState<CardInterface | null>(
+      null
     );
     // const originalIntervalRef = useRef(autoScrollInterval);
 
@@ -219,6 +223,19 @@ export const InfiniteCardScroll: React.FC<InfiniteCardScrollProps> = memo(
       if (!isScrolling) resumeScroll();
     }, 200);
 
+    const handleAgentSelect = useCallback(
+      (agent: CardInterface) => {
+        setSelectedAgent(agent);
+        stopScroll();
+      },
+      [stopScroll]
+    );
+
+    const handleBackToGrid = useCallback(() => {
+      setSelectedAgent(null);
+      startScroll();
+    }, [startScroll]);
+
     const handleDrag = (e: React.DragEvent) => {
       e.preventDefault();
     };
@@ -239,8 +256,15 @@ export const InfiniteCardScroll: React.FC<InfiniteCardScrollProps> = memo(
             // duration={duration}
           />
         )}
-        {isLoading ? (
-          <div className="loading">Loading cards...</div>
+
+        {selectedAgent ? (
+          <AgentDetail
+            agent={selectedAgent}
+            onBack={handleBackToGrid}
+            handleStart={handleStart}
+            handleEnd={handleEnd}
+            getAgentName={setAgentName}
+          />
         ) : (
           <div className="navigation-controls relative">
             <button
@@ -276,6 +300,7 @@ export const InfiniteCardScroll: React.FC<InfiniteCardScrollProps> = memo(
                     handleStart={handleStart}
                     handleEnd={handleEnd}
                     getAgentName={setAgentName}
+                    onAgentSelect={handleAgentSelect}
                   />
                 </div>
               ))}

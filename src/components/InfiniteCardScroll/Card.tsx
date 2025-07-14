@@ -7,6 +7,7 @@ interface CardProps {
   handleStart: (agent_code: string) => void;
   handleEnd: () => void;
   getAgentName: (agentName: string) => void;
+  onAgentSelect?: (agent: CardInterface) => void;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -14,11 +15,20 @@ export const Card: React.FC<CardProps> = ({
   isActive,
   handleStart,
   getAgentName,
+  onAgentSelect,
 }) => {
   const Icon = card.icon;
-
+  const handleCardClick = () => {
+    if (onAgentSelect) {
+      onAgentSelect(card);
+    }
+  };
   return (
-    <div className={`card ${isActive ? "active" : ""}`}>
+    <div
+      className={`card ${isActive ? "active" : ""}`}
+      onClick={handleCardClick}
+    >
+      {" "}
       <div
         className="card-icon-wrapper"
         style={{ backgroundColor: card.imageUrl }}
@@ -43,7 +53,7 @@ export const Card: React.FC<CardProps> = ({
         >
           <Mic size={16} />
           Try Demo
-        </button> 
+        </button>
       </div>
     </div>
   );
