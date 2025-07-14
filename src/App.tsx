@@ -1,5 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { WidgetDemo } from "./components/WidgetDemo";
+import { InfiniteCardScroll } from "./components/InfiniteCardScroll/InfiniteCardScroll";
+import { mockCards } from "./data/mockCards";
+import { UltravoxSession } from "ultravox-client";
+import axios from "axios";
 
 const widgets = [
   {
@@ -32,17 +36,101 @@ const widgets = [
 
 function App() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [callId, setCallId] = useState(null);
+  const [sessionStatus, setSessionStatus] = useState(null);
+  const [callSessionId, setCallSessionId] = useState(null);
+  const [stopScrolls, setStopScrolls] = useState(false);
+  const [resumeScrolls, setResumeScrolls] = useState(false);
+  const [showRealEstateAgentVoice, setShowRealEstateAgentVoice] = useState(false);
+  const sessionRef = useRef(null);
+
+  if (!sessionRef.current) {
+    sessionRef.current = new UltravoxSession();
+  }
 
   useEffect(() => {
     setIsLoaded(true);
+
+    const handleStatus = (event) => {
+      console.log("Session status changed: ", event);
+      setSessionStatus(sessionRef.current?.status);
+    };
+
+    sessionRef.current?.addEventListener("status", handleStatus);
+
+    return () => {
+      // Cleanup event listener on unmount
+      sessionRef.current?.removeEventListener("status", handleStatus);
+    };
   }, []);
+
+  useEffect(() => {
+    if (sessionStatus === "disconnected") {
+      handleEnd();
+      setShowRealEstateAgentVoice(false);
+    }
+  }, [sessionStatus]);
+
+  const handleStart = async (agent_code) => {
+    if (sessionStatus !== "disconnected") {
+      await handleEnd();
+    }
+
+    try {
+      if (!isListening) {
+        const response = await axios.post(
+          `https://app.snowie.ai/api/start-thunder/`,
+          {
+            agent_code: agent_code,
+            schema_name: "6af30ad4-a50c-4acc-8996-d5f562b6987f",
+          }
+        );
+        setStopScrolls(true);
+        setShowRealEstateAgentVoice(true);
+        const wssUrl = response.data.joinUrl;
+        setCallId(response.data.callId);
+        setCallSessionId(response.data.call_session_id);
+
+        if (wssUrl) {
+          console.log("wssUrl", wssUrl);
+          sessionRef.current?.joinCall(`${wssUrl}`);
+        }
+        setIsListening(true);
+      } else {
+        await sessionRef.current?.leaveCall();
+        setShowRealEstateAgentVoice(false);
+        const response = await axios.post(
+          `https://app.snowie.ai/api/end-call-session-thunder/`,
+          {
+            call_session_id: callSessionId,
+            call_id: callId,
+            schema_name: "6af30ad4-a50c-4acc-8996-d5f562b6987f",
+          }
+        );
+        setIsListening(false);
+      }
+    } catch (error) {
+      console.error("Error in handleStart:", error);
+    }
+  };
+
+  const handleEnd = async () => {
+    await sessionRef.current?.leaveCall();
+    setStopScrolls(false);
+    setShowRealEstateAgentVoice(false);
+    setIsListening(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
       <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-6 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
+        <div className="max-w-7xl mx-auto px- moves6 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <header className="text-center mb-16 lg:mb-20">
-            <h1 className=" text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6" style={{paddingTop:'5rem'}}>
+            <h1
+              className="text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6"
+              style={{ paddingTop: "5rem" }}
+            >
               Widgets Showcase - Ravan.ai
             </h1>
           </header>
@@ -65,12 +153,24 @@ function App() {
                 </div>
                 <div className="relative group">
                   <div className="bg-white/90 bg-gradient-to-br from-white to-orange-50 rounded-2xl p-6 sm:p-8 lg:p-10">
-                    <WidgetDemo
-                      tagName={widget.tagName}
-                      agentId={widget.agentId}
-                      schema={widget.schema}
-                      type={widget.type}
-                    />
+                    {widget.title === "Multi-Thunder Widget" ? (
+                      <InfiniteCardScroll
+                        cards={mockCards}
+                        handleStart={handleStart}
+                        handleEnd={handleEnd}
+                        stopScrolls={stopScrolls}
+                        resumeScrolls={resumeScrolls}
+                        showRealEstateAgentVoice={showRealEstateAgentVoice}
+                        sessionStatus={sessionStatus}
+                      />
+                    ) : (
+                      <WidgetDemo
+                        tagName={widget.tagName}
+                        agentId={widget.agentId}
+                        schema={widget.schema}
+                        type={widget.type}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
