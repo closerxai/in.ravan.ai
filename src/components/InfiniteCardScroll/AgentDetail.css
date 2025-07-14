@@ -27,6 +27,7 @@
 }
 
 .back-button:hover {
+    background: none;
   color: #E64A19;
   transform: translateX(-4px);
 }
