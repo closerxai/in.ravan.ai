@@ -5,13 +5,21 @@ import { mockCards } from "./data/mockCards";
 import { UltravoxSession } from "ultravox-client";
 import axios from "axios";
 
+// Mapping of language codes to agentIds for Video Widget
+const videoWidgetAgentIds = {
+  en: "ca9b354f-41a7-46ab-8e6d-8c56b6a1e727", // English
+  hi: "5b9d7ca0-547c-4c74-b07c-59df751d74c8", // Hindi
+  es: "4d8bec16-562a-4125-b86e-aba31e70759d", // Spanish
+  fr: "cfdb1510-904f-4fdc-8858-8fc09f9afe34", // French
+  de: "3f7ebb25-c854-4c11-961e-2c76c4f98e12", // German
+};
+
 const widgets = [
   {
     title: "Video Widget",
     description:
       "A widget for video-related interactions with customizable features and real-time communication capabilities.",
     tagName: "react-widget-rvw",
-    agentId: "ca9b354f-41a7-46ab-8e6d-8c56b6a1e727",
     schema: "09483b13-47ac-47b2-95cf-4ca89b3debfa",
   },
   {
@@ -43,6 +51,7 @@ function App() {
   const [stopScrolls, setStopScrolls] = useState(false);
   const [resumeScrolls, setResumeScrolls] = useState(false);
   const [showRealEstateAgentVoice, setShowRealEstateAgentVoice] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("en"); // Default language
   const sessionRef = useRef(null);
 
   if (!sessionRef.current) {
@@ -60,7 +69,6 @@ function App() {
     sessionRef.current?.addEventListener("status", handleStatus);
 
     return () => {
-      // Cleanup event listener on unmount
       sessionRef.current?.removeEventListener("status", handleStatus);
     };
   }, []);
@@ -122,10 +130,18 @@ function App() {
     setIsListening(false);
   };
 
+  const languageOptions = [
+    { value: "en", label: "English" },
+    { value: "hi", label: "Hindi" },
+    { value: "es", label: "Spanish" },
+    { value: "fr", label: "French" },
+    { value: "de", label: "German" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
       <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px- moves6 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
+        <div className="max-w-7xl mx-auto px-6 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <header className="text-center mb-16 lg:mb-20">
             <h1
               className="text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6"
@@ -151,6 +167,21 @@ function App() {
                     {widget.description}
                   </p>
                 </div>
+                {widget.title === "Video Widget" && (
+                  <div className="mb-6 flex justify-center">
+                    <select
+                      value={selectedLanguage}
+                      onChange={(e) => setSelectedLanguage(e.target.value)}
+                      className="bg-white border border-gray-300 rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      {languageOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="relative group">
                   <div className="bg-white/90 bg-gradient-to-br from-white to-orange-50 rounded-2xl p-6 sm:p-8 lg:p-10">
                     {widget.title === "Multi-Thunder Widget" ? (
@@ -166,7 +197,11 @@ function App() {
                     ) : (
                       <WidgetDemo
                         tagName={widget.tagName}
-                        agentId={widget.agentId}
+                        agentId={
+                          widget.title === "Video Widget"
+                            ? videoWidgetAgentIds[selectedLanguage] || videoWidgetAgentIds["en"]
+                            : widget.agentId
+                        }
                         schema={widget.schema}
                         type={widget.type}
                       />
